@@ -4,6 +4,9 @@
 // 已验证: 本源食堂 刺身寿司拉面 单人套餐 列表18.8km/173元 详情19.4km/173元 符合条件
 // 备选: 花崎居酒屋 19.3km/110元 同样符合
 auto.waitFor();
+try{device.wakeUpIfNeeded();}catch(e){}
+toast("V8 start");
+log("V8 start");
 function clickTextParent(txt, timeout){
     timeout = timeout || 5000;
     var node = text(txt).findOne(timeout);
@@ -15,15 +18,16 @@ function clickTextParent(txt, timeout){
 function clickXY(x,y){ var sx=device.width/1280, sy=device.height/2772; click(x*sx,y*sy); sleep(1000); }
 function ensureMeishi(){
   if(!textContains("\u514d\u8d39\u8bd5").findOne(5000))throw new Error("need free page");
-  if(text("\u7f8e\u98df").findOne(2000)){toast("in meishi");return;}
-  for(var r=0;r<3;r++){
-    var c=null;try{c=text("\u5168\u90e8\u5206\u7c7b").findOne(2000);}catch(e){}
+  if(text("\u7f8e\u98df").findOnce()){toast("in meishi");return;}
+  for(var r=0;r<5;r++){
+ toast("switch meishi try "+r);log("switch meishi try "+r);
+    var c=null;try{c=text("\u5168\u90e8\u5206\u7c7b").findOnce();}catch(e){}
     if(c){try{var pp=c.parent();if(pp)pp.click();else c.click();}catch(e){try{c.click();}catch(e2){}}}
     else{var sx=device.width/1280,sy=device.height/2772;click(481*sx,1529*sy);}
-    sleep(1500);
+    sleep(2500);
     try{var ms=className("android.widget.TextView").find();var ks="";for(var i=0;i<Math.min(ms.length,30);i++){ks+=(ms[i].text()||"")+",";}log("menu:"+ks.slice(0,100));}catch(e){}
-    var m=null;try{m=text("\u7f8e\u98df").findOne(2000);}catch(e){}
-    if(m){try{var mp=m.parent();if(mp)mp.click();else m.click();}catch(e){var sx2=device.width/1280,sy2=device.height/2772;click(640*sx2,634*sy2);}sleep(1500);toast("to meishi");return;}
+    var m=null;try{m=text("\u7f8e\u98df").findOnce();}catch(e){}
+    if(m){try{var mp=m.parent();if(mp)mp.click();else m.click();}catch(e){var sx2=device.width/1280,sy2=device.height/2772;click(640*sx2,634*sy2);}sleep(2500);toast("to meishi");return;}
   }
   toast("keep list");
 }
@@ -70,8 +74,8 @@ for(var s=0;s<8;s++){
 if(found){ toast("已打开 价值"+found.val+"元 "+found.dist+"km"); }
 else{
     toast("未自动匹配,走兜底坐标本源食堂");
-    swipe(device.width/2, device.height*0.75, device.width/2, device.height*0.30, 700); sleep(1500);
-    swipe(device.width/2, device.height*0.75, device.width/2, device.height*0.30, 700); sleep(1500);
+    swipe(device.width/2, device.height*0.75, device.width/2, device.height*0.30, 700); sleep(2500);
+    swipe(device.width/2, device.height*0.75, device.width/2, device.height*0.30, 700); sleep(2500);
     clickXY(640,1509);
 }
 if(textContains("我要报名").findOne(5000) || textContains("适用商户").findOne(3000)){ toast("已进入符合条件的商家详情"); }// --- 报名步骤(已验证 2026-09-13 本源食堂) ---

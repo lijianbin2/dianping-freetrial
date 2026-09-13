@@ -1,5 +1,8 @@
 // V6 2026-09-13: 右卡=入口(免费试 2万个活动在线).标题是图片无文本节点,盯活动在线整卡
 auto.waitFor();
+try{device.wakeUpIfNeeded();}catch(e){}
+toast("V8 start");
+log("V8 start");
 function clickUpClickable(node){
   var p=node;
   for(var i=0;i<6;i++){
@@ -8,7 +11,7 @@ function clickUpClickable(node){
   return false;
 }
 function verifyIn(){
-  return textContains("免费抽").findOne(2000)||text("免费试").findOne(2000)||textContains("高中奖率").findOne(2000)||textContains("免费试用").findOne(2000)||textContains("霸王餐").findOne(2000);
+  return textContains("免费抽").findOnce()||text("免费试").findOnce()||textContains("高中奖率").findOnce()||textContains("免费试用").findOnce()||textContains("霸王餐").findOnce();
 }
 function closePopup(){
   var keys=["跳过","关闭","以后再说","我知道了","取消","知道了"];
@@ -64,12 +67,12 @@ function openMianFeiShi(){
   for(var s=0;s<10;s++){
     dumpKeys();
     if(tryAllKw("原地"+s)){toast("已打开免费试");return true;}
-    sleep(1500);
+    sleep(2500);
     if(s==4||s==7)closePopup();
   }
   toast("还没中,回顶一次再找整卡");
   swipe(device.width/2,device.height*0.28,device.width/2,device.height*0.75,500);
-  sleep(1500);closePopup();dumpKeys();
+  sleep(2500);closePopup();dumpKeys();
   for(var t=0;t<3;t++){
     if(tryAllKw("回顶"+t)){toast("已打开免费试");return true;}
     sleep(1200);
@@ -78,9 +81,9 @@ function openMianFeiShi(){
   if(tapScale(744,1014,"ImageView免费试")){toast("已打开免费试");return true;}
   if(tapScale(956,1102,"右卡中心")){toast("已打开免费试");return true;}
   try{
-    var my=text("我的").findOne(2000);
+    var my=text("我的").findOnce();
     if(my){clickUpClickable(my);sleep(2500);dumpKeys();if(tryAllKw("我的页"))return true;
-      var home=text("首页").findOne(2000);if(home)clickUpClickable(home);sleep(2000);}
+      var home=text("首页").findOnce();if(home)clickUpClickable(home);sleep(2000);}
   }catch(e){log(e);}
   toast("没找到入口,看log活动在线");
   return false;
@@ -88,15 +91,16 @@ function openMianFeiShi(){
 openMianFeiShi();
 function ensureMeishi(){
   if(!textContains("\u514d\u8d39\u8bd5").findOne(5000))throw new Error("need free page");
-  if(text("\u7f8e\u98df").findOne(2000)){toast("in meishi");return;}
-  for(var r=0;r<3;r++){
-    var c=null;try{c=text("\u5168\u90e8\u5206\u7c7b").findOne(2000);}catch(e){}
+  if(text("\u7f8e\u98df").findOnce()){toast("in meishi");return;}
+  for(var r=0;r<5;r++){
+ toast("switch meishi try "+r);log("switch meishi try "+r);
+    var c=null;try{c=text("\u5168\u90e8\u5206\u7c7b").findOnce();}catch(e){}
     if(c){try{var pp=c.parent();if(pp)pp.click();else c.click();}catch(e){try{c.click();}catch(e2){}}}
     else{var sx=device.width/1280,sy=device.height/2772;click(481*sx,1529*sy);}
-    sleep(1500);
+    sleep(2500);
     try{var ms=className("android.widget.TextView").find();var ks="";for(var i=0;i<Math.min(ms.length,30);i++){ks+=(ms[i].text()||"")+",";}log("menu:"+ks.slice(0,100));}catch(e){}
-    var m=null;try{m=text("\u7f8e\u98df").findOne(2000);}catch(e){}
-    if(m){try{var mp=m.parent();if(mp)mp.click();else m.click();}catch(e){var sx2=device.width/1280,sy2=device.height/2772;click(640*sx2,634*sy2);}sleep(1500);toast("to meishi");return;}
+    var m=null;try{m=text("\u7f8e\u98df").findOnce();}catch(e){}
+    if(m){try{var mp=m.parent();if(mp)mp.click();else m.click();}catch(e){var sx2=device.width/1280,sy2=device.height/2772;click(640*sx2,634*sy2);}sleep(2500);toast("to meishi");return;}
   }
   toast("keep list");
 }
@@ -137,12 +141,12 @@ function doBaoMing(){
   var q=text("确认报名").findOne(8000);
   if(q){ var qp=null; try{ qp=q.parent(); }catch(e){} if(qp) qp.click(); else q.click(); sleep(2500); }
   else { var sx=device.width/1280, sy=device.height/2772; click(640*sx,2558*sy); sleep(2000); }
-  if(textContains("仅 Lv6").findOne(2000) || textContains("等级不够").findOne(2000) || textContains("暂未满足").findOne(2000) || textContains("橙V").findOne(2000)){
+  if(textContains("仅 Lv6").findOnce() || textContains("等级不够").findOnce() || textContains("暂未满足").findOnce() || textContains("橙V").findOnce()){
     return "level_buzu";
   }
   var done=text("完成").findOne(3000);
   if(done){ done.click(); sleep(2000); }
-  back(); sleep(1500);
+  back(); sleep(2500);
   return "ok";
 }
 openMianFeiShi();
@@ -156,7 +160,7 @@ while(true){
   toast("已打开 价值"+found.val+"元 "+found.dist+"km");
   var r=doBaoMing(); count++;
   if(r=="level_buzu"){ toast("等级不够,结束"); break; }
-  sleep(1500);
+  sleep(2500);
 }
 toast("共处理"+count+"家,结束");
 
