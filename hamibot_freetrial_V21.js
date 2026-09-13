@@ -1,20 +1,20 @@
-// V19 2026-09-13: start from free-trial list. Fix V18 hang: no infinite auto.waitFor.
-toast("V19 start");
-sleep(500);
+// V20 ASCII filename UTF8-noBOM safe-header for Hamibot
+toast("V21 start");
+sleep(1500);
 var _autoOk=false;
-try{try{if(auto.service!=null){_autoOk=true;}}catch(_se){}}catch(_outer){}
-if(!_autoOk){toast("waiting accessibility 15s");for(var _w=0;_w<15;_w++){sleep(1000);try{if(auto.service!=null){_autoOk=true;break;}}catch(_e){}if(_w%5==4){toast("wait AX "+(_w+1)+"s");}}}
-if(!_autoOk){try{auto.waitFor();_autoOk=true;}catch(_we){toast("no AX:"+_we);}}
-toast("V19 auto ok:"+_autoOk);
+try{if(typeof auto!=="undefined"&&auto.service!=null){_autoOk=true;}}catch(_se){}
+if(!_autoOk){toast("waiting AX 10s");for(var _w=0;_w<10;_w++){sleep(1000);try{if(typeof auto!=="undefined"&&auto.service!=null){_autoOk=true;break;}}catch(_e){}if(_w==4||_w==9){toast("wait AX "+(_w+1)+"s");}}}
+toast("V21 auto ok:"+_autoOk);
 if(!_autoOk){toast("AX not ready, stop");exit();}
+
 var LOG_CANDS=["/sdcard/hamibot_free_log.txt","./hamibot_free_log.txt","/sdcard/Download/hamibot_free_log.txt"];
 var LOG_PATH="/sdcard/hamibot_free_log.txt";
 var LOG_OK="";
-for(var _li=0;_li<LOG_CANDS.length;_li++){try{files.write(LOG_CANDS[_li],"=== V19 start "+new Date().toLocaleString()+" ==="+"\n");LOG_PATH=LOG_CANDS[_li];LOG_OK=LOG_PATH;break;}catch(_le){}}
+for(var _li=0;_li<LOG_CANDS.length;_li++){try{files.write(LOG_CANDS[_li],"=== V21 start "+new Date().toLocaleString()+" ==="+"\n");LOG_PATH=LOG_CANDS[_li];LOG_OK=LOG_PATH;break;}catch(_le){}}
 var _origLog=null;try{_origLog=log;}catch(_e0){}
 function L(m){try{if(_origLog)_origLog(m);}catch(_e1){}try{if(LOG_OK)files.append(LOG_OK,"\n"+new Date().toLocaleTimeString()+" "+m);}catch(_e2){}}
-toast("V19 start log:"+LOG_OK);
-L("V19 start log:"+LOG_OK);
+toast("V21 start log:"+LOG_OK);
+L("V21 start log:"+LOG_OK);
 function clickUpClickable(node){
   var p=node;
   for(var i=0;i<6;i++){
@@ -84,14 +84,21 @@ function tryOpenQualifiedOnce(){
     var dist=dM?parseFloat(dM[1]):-1;
     L("cand"+a+":v"+val+"d"+dist);
     if(val>100&&dist>=0&&dist<20){
-      L("hit"+val+"yuan"+dist+"km");
-      var opened=false;
-      var p=ax[a].obj;
-      for(var k=0;k<6;k++){try{if(!p)break;if(p.clickable()){p.click();opened=true;break;}p=p.parent();}catch(e){break;}}
-      if(!opened){try{var b2=ax[a].obj.bounds();click(b2.centerX(),b2.centerY());opened=true;}catch(e){}}
+      L("hit"+val+"yuan"+dist+"km y="+y);
+      try{click(device.width/2,y);}catch(ee){}
       sleep(2500);
-      if(inFreeList()){L("open fail still in list, try next");continue;}
-      return{val:val,dist:dist,text:clean};
+      var detail=false;
+      try{if(text("我要报名").findOnce()!=null)detail=true;}catch(ee){}
+      try{if(!detail&&!inFreeList())detail=true;}catch(ee){}
+      if(detail){L("open ok");return{val:val,dist:dist,text:clean};}
+      L("card tap fail,try parent");
+      try{var p=ax[a].obj;for(var k=0;k<6;k++){try{if(!p)break;if(p.clickable()){p.click();break;}p=p.parent();}catch(ee){break;}}}catch(ee){}
+      sleep(2500);
+      try{if(text("我要报名").findOnce()!=null)detail=true;}catch(ee){}
+      try{if(!detail&&!inFreeList())detail=true;}catch(ee){}
+      if(detail){L("open ok2");return{val:val,dist:dist,text:clean};}
+      L("open fail still in list, try next");
+      continue;
     }
   }
   return null;
@@ -130,13 +137,13 @@ function guardBack(tag){if(inFreeList()){L(tag+": still in free list,skip back")
   
   L("doBaoMing ok"); return "ok";
 }
-toast("V19:请确认已在免费试列表页");L("V19 wait in free list");var _inFree=false;for(var _wf=0;_wf<30;_wf++){try{if(textContains("免费抽").findOnce()||textContains("全部分类").findOnce()||textContains("智能排序").findOnce()){_inFree=true;break;}}catch(e){}sleep(1000);if(_wf%5==0){toast("等免费试列表 "+_wf+"s");L("wait free list "+_wf+"s pkg="+currentPackage());}}toast("inFree="+_inFree);L("inFree="+_inFree);if(!_inFree){toast("没看到免费试列表,先停");L("NOT IN FREE LIST,exit");exit();}
+toast("V20:请确认已在免费试列表页");L("V20 wait in free list");var _inFree=false;for(var _wf=0;_wf<30;_wf++){try{if(textContains("免费抽").findOnce()||textContains("全部分类").findOnce()||textContains("智能排序").findOnce()){_inFree=true;break;}}catch(e){}sleep(1000);if(_wf%5==0){toast("等免费试列表 "+_wf+"s");L("wait free list "+_wf+"s pkg="+currentPackage());}}toast("inFree="+_inFree);L("inFree="+_inFree);if(!_inFree){toast("没看到免费试列表,先停");L("NOT IN FREE LIST,exit");exit();}
 if(!ensureMeishi()){toast("no meishi,exit");exit();}
 
 var count=0;var failStreak=0;
 while(true){
   var found=null;
-  for(var s=0;s<8;s++){ found=tryOpenQualifiedOnce(); if(found) break; swipe(device.width/2, device.height*0.75, device.width/2, device.height*0.30, 700); sleep(1800); }
+  for(var s=0;s<8;s++){ try{toast("scan "+(s+1)+"/8");L("scan "+s);}catch(ee){} try{found=tryOpenQualifiedOnce();}catch(ee){L("scan err");} if(found) break; try{swipe(device.width/2, device.height*0.75, device.width/2, device.height*0.30, 700);}catch(ee){} sleep(1800); L("swiped "+s); }
   if(!found){ toast("没找到更多符合商家,结束"); break; }
   toast("已打开 价值"+found.val+"元 "+found.dist+"km");
   L("open done v="+found.val+" d="+found.dist+" call doBaoMing"); var r=doBaoMing(); L("doBaoMing ret="+r); count++;
