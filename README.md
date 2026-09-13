@@ -96,3 +96,10 @@ outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进
 - 修复2：美食候选按 centerY 排序，弹窗项优先点；点全部分类改用 bounds 中心 click 并打日志。
 - 修复3：价值解析加兜底，clean 匹配不到时用 joined 宽松取 价值...元 再提数字，兼容 价值 1 5 9 元这种被拆成三段 TextView 的情况。
 - 预期 toast：V10.4 start -> switch meishi try -> to meishi ok -> 扫卡 free xN -> hit...yuan...km。
+
+## V10.5（2026-09-13）：日志落盘到手机 txt
+- 需求：用户要求以后看日志直接看手机 txt，不用截图 Hamibot 日志页。
+- 实现：LOG_PATH=/sdcard/hamibot_free_log.txt，启动时 files.write 覆盖写头，劫持 log() 双写（控制台+append 到 txt，带时间戳）。
+- 验证：adb shell cat /sdcard/hamibot_free_log.txt，应看到 V10.5 start -> switch meishi try -> to meishi ok -> 扫卡 free xN。
+- 注意：txt 不存在=新版还没跑过，先在 Hamibot 粘贴合并版重跑一次再拉取。
+
