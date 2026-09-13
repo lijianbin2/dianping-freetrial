@@ -5,8 +5,8 @@
 // 备选: 花崎居酒屋 19.3km/110元 同样符合
 auto.waitFor();
 try{device.wakeUpIfNeeded();}catch(e){}
-toast("V9 start");
-log("V9 start");
+toast("V10 start");
+log("V10 start");
 function clickTextParent(txt, timeout){
     timeout = timeout || 5000;
     var node = text(txt).findOne(timeout);
@@ -16,20 +16,34 @@ function clickTextParent(txt, timeout){
     sleep(1000); return true;
 }
 function clickXY(x,y){ var sx=device.width/1280, sy=device.height/2772; click(x*sx,y*sy); sleep(1000); }
+function isMeishiTab(){
+  try{
+    var ns=text("\u7f8e\u98df").find();
+    for(var i=0;i<ns.length;i++){
+      try{var y=ns[i].bounds().centerY();if(y>=1300&&y<=1750)return true;}catch(e){}
+    }
+  }catch(e){}
+  return false;
+}
 function ensureMeishi(){
-  if(!textContains("\u514d\u8d39\u8bd5").findOne(2000)){toast("V9:没扫到免费试字样,继续");log("V9 no free marker, go on");}
-  if(text("\u7f8e\u98df").findOnce()){toast("in meishi");return;}
+  if(!textContains("\u514d\u8d39\u8bd5").findOne(2000)){toast("V10:no free marker,go on");log("V10 no free marker, go on");}
+  if(isMeishiTab()){toast("in meishi");return true;}
   for(var r=0;r<5;r++){
- toast("switch meishi try "+r);log("switch meishi try "+r);
+    toast("switch meishi try "+r);log("switch meishi try "+r);
     var c=null;try{c=text("\u5168\u90e8\u5206\u7c7b").findOnce();}catch(e){}
     if(c){try{var pp=c.parent();if(pp)pp.click();else c.click();}catch(e){try{c.click();}catch(e2){}}}
     else{var sx=device.width/1280,sy=device.height/2772;click(481*sx,1529*sy);}
     sleep(2500);
-    try{var ms=className("android.widget.TextView").find();var ks="";for(var i=0;i<Math.min(ms.length,30);i++){ks+=(ms[i].text()||"")+",";}log("menu:"+ks.slice(0,100));}catch(e){}
-    var m=null;try{m=text("\u7f8e\u98df").findOnce();}catch(e){}
-    if(m){try{var mp=m.parent();if(mp)mp.click();else m.click();}catch(e){var sx2=device.width/1280,sy2=device.height/2772;click(640*sx2,634*sy2);}sleep(2500);toast("to meishi");return;}
+    var cands=null;try{cands=text("\u7f8e\u98df").find();}catch(e){}
+    if(cands&&cands.length>0){
+      for(var mi=0;mi<cands.length;mi++){
+        try{var m=cands[mi];log("meishi cand y="+m.bounds().centerY());var mp=null;try{mp=m.parent();}catch(e){}if(mp)mp.click();else m.click();}catch(e){}
+        sleep(3000);
+        if(isMeishiTab()){toast("to meishi ok");return true;}
+      }
+    }
   }
-  toast("keep list");
+  toast("not in meishi");return false;
 }
 
 function tryOpenQualifiedOnce(){
@@ -62,7 +76,7 @@ function tryOpenQualifiedOnce(){
   return null;
 }
 
-ensureMeishi();
+if(!ensureMeishi()){toast("no meishi,exit");exit();}
 for(var i=0;i<2;i++){ swipe(device.width/2, device.height*0.3, device.width/2, device.height*0.8, 600); sleep(1200); }
 var found=null;
 for(var s=0;s<8;s++){
