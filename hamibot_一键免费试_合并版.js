@@ -1,8 +1,8 @@
 // V6 2026-09-13: 右卡=入口(免费试 2万个活动在线).标题是图片无文本节点,盯活动在线整卡
 auto.waitFor();
 try{device.wakeUpIfNeeded();}catch(e){}
-toast("V10.1 start");
-log("V10.1 start");
+toast("V10.2 start");
+log("V10.2 start");
 function clickUpClickable(node){
   var p=node;
   for(var i=0;i<6;i++){
@@ -63,7 +63,7 @@ function tryAllKw(tag){
 function openMianFeiShi(){
   toast("launch dzdp");log("launch dzdp");try{app.launch("com.dianping.v1");toast("launched");log("launched");}catch(e){toast("launch fail");log("launch fail:"+e);}sleep(2000);try{toast("pkg:"+currentPackage());log("pkg:"+currentPackage());}catch(e2){}
   toast("点右卡:免费试 2万个活动在线");
-  sleep(5000);closePopup();
+  toast("wait dzdp");for(var _w=0;_w<5;_w++){sleep(1000);log("wait"+_w);}closePopup();toast("wait done");
   for(var s=0;s<10;s++){
     dumpKeys();
     if(tryAllKw("原地"+s)){toast("已打开免费试");return true;}
@@ -163,7 +163,7 @@ function doBaoMing(){
   back(); sleep(2500);
   return "ok";
 }
-openMianFeiShi();
+toast("defs ok,call open");log("defs ok,call open");var openRet=false;try{openRet=openMianFeiShi();}catch(e){toast("open err");log("open err:"+e);}toast("open ret="+openRet);log("open ret="+openRet);
 if(!ensureMeishi()){toast("no meishi,exit");exit();}
 for(var i=0;i<2;i++){ swipe(device.width/2, device.height*0.3, device.width/2, device.height*0.8, 600); sleep(1200); }
 var count=0;
@@ -177,5 +177,7 @@ while(true){
   sleep(2500);
 }
 toast("共处理"+count+"家,结束");
+
+
 
 
