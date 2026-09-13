@@ -103,3 +103,8 @@ outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进
 - 验证：adb shell cat /sdcard/hamibot_free_log.txt，应看到 V10.5 start -> switch meishi try -> to meishi ok -> 扫卡 free xN。
 - 注意：txt 不存在=新版还没跑过，先在 Hamibot 粘贴合并版重跑一次再拉取。
 
+
+## V10.6（2026-09-13）：多路径日志兜底
+- V10.5 只写 /sdcard，实测没文件（没跑新版或没存储权限），改试 3 个路径：/sdcard/hamibot_free_log.txt -> ./hamibot_free_log.txt -> /sdcard/Download/hamibot_free_log.txt，哪个能写用哪个。
+- toast 直接报 V10.6 start log:实际路径，跑完凭 toast 就知道写到哪了。
+

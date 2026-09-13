@@ -1,12 +1,14 @@
 // V6 2026-09-13: 右卡=入口(免费试 2万个活动在线).标题是图片无文本节点,盯活动在线整卡
 auto.waitFor();
 try{device.wakeUpIfNeeded();}catch(e){}
+var LOG_CANDS=["/sdcard/hamibot_free_log.txt","./hamibot_free_log.txt","/sdcard/Download/hamibot_free_log.txt"];
 var LOG_PATH="/sdcard/hamibot_free_log.txt";
-try{files.write(LOG_PATH,"=== V10.5 start "+new Date().toLocaleString()+" ===\n");}catch(e){}
+var LOG_OK="";
+for(var _li=0;_li<LOG_CANDS.length;_li++){try{files.write(LOG_CANDS[_li],"=== V10.6 start "+new Date().toLocaleString()+" ==="+"\n");LOG_PATH=LOG_CANDS[_li];LOG_OK=LOG_PATH;break;}catch(_le){}}
 var _origLog=log;
-log=function(m){try{_origLog(m);}catch(e){}try{files.append(LOG_PATH,"\n"+new Date().toLocaleTimeString()+" "+m);}catch(e2){}};
-toast("V10.5 start");
-log("V10.5 start");
+log=function(m){try{_origLog(m);}catch(e){}try{if(LOG_OK)files.append(LOG_OK,"\n"+new Date().toLocaleTimeString()+" "+m);}catch(e2){}};
+toast("V10.6 start log:"+LOG_OK);
+log("V10.6 start log:"+LOG_OK);
 function clickUpClickable(node){
   var p=node;
   for(var i=0;i<6;i++){
