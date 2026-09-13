@@ -4,10 +4,10 @@ Hamibot 脚本：大众点评 App「免费试」频道，自动筛选**价值 10
 
 ## 当前推荐（2026-09-13）
 
-- 手机上只传一个：hamibot_freetrial_V21.js（从免费试列表页开始，不碰首页）。
-- 点运行后必须先看到 V21 start，再看到 V21 auto ok:true；只看到前者=无障碍没开。
+- 手机上只传一个：hamibot_freetrial_V22.js（从免费试列表页开始，不碰首页）。
+- 点运行后必须先看到 V22 start，再看到 V22 auto ok:true；只看到前者=无障碍没开。
 - 先跑 hamibot_smoke.js：冒烟都不弹=Hamibot 环境问题，不是脚本问题。
-- V21相对V20只改两处：卡片改点中部坐标（点不开修掉）+ 主循环加try/catch和toast防翻页不动；报名逻辑与V20一致。
+- V22相对V21改三处：删绝对坐标盲点（无全部分类直接停止）+ 详情复核（详情距离>=20km跳过far / 已报名无我要报名跳过already）+ 主循环同步处理far/already；U2先行验证（work/u2_prototype.py）再转Hamibot。
 
 ## 环境
 
@@ -159,3 +159,14 @@ outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进
 ## V18
 - 修启动即死:不再覆盖系统log函数,改用自有L()写日志;启动加toast,无动作也能定位卡在哪。
 
+## V22（2026-09-13）：U2先行验证后转换，详情复核补齐
+- 流程：PC用uiautomator2调通（起点=手动停在免费试列表），再转Hamibot。U2原型work/u2_prototype.py + 全量扫描work/u2_scan.py：整列表7卡全不达标（价值>100且距离<20km），只滑不动，不碰快筛（连锁餐厅等selected=false已确认）。
+- 改（相对V21）：删绝对坐标盲点（481,1529 fallback改停止）；详情复核补两项——详情距离>=20km回列表跳过（far，修列表19.8/详情20.4偏差）、有已报名无我要报名回列表跳过（already）；主循环failStreak分支同步处理far/already。
+- 文件：hamibot_freetrial_V22.js（ASCII名，LF无BOM，node --check通过）。起点仍是手动停在免费试列表页，日志写手机txt。
+- 待验证：等列表刷出价值>100且距离<20km的卡后实测开卡报名一单。
+
+## V22.1 U2 window350 + 防误点连锁餐厅 guard
+- 只读dump验证：当前屏5价配6距，价距Y差全部恰好136，证明120窗口必配丢、350正确；5张全价值<100，无合格卡。
+- 误点连锁餐厅根因：代码从无点快筛逻辑（四快筛selected=false已确认），是120窗口配错致开卡坐标飘。
+- 修：U2与Hamibot V22价距配对窗口统一120→350；开卡前加guard：target y<600拒绝点击、上滑跳过（快筛栏y≈486，防误点连锁餐厅/附近3km等）。
+- U2原型work/u2_prototype.py + 全量扫描work/u2_scan.py已同步；Hamibot V22.js逻辑与U2对齐。
