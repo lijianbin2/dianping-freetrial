@@ -4,11 +4,11 @@ try{device.wakeUpIfNeeded();}catch(e){}
 var LOG_CANDS=["/sdcard/hamibot_free_log.txt","./hamibot_free_log.txt","/sdcard/Download/hamibot_free_log.txt"];
 var LOG_PATH="/sdcard/hamibot_free_log.txt";
 var LOG_OK="";
-for(var _li=0;_li<LOG_CANDS.length;_li++){try{files.write(LOG_CANDS[_li],"=== V10.6 start "+new Date().toLocaleString()+" ==="+"\n");LOG_PATH=LOG_CANDS[_li];LOG_OK=LOG_PATH;break;}catch(_le){}}
+for(var _li=0;_li<LOG_CANDS.length;_li++){try{files.write(LOG_CANDS[_li],"=== V10.7 start "+new Date().toLocaleString()+" ==="+"\n");LOG_PATH=LOG_CANDS[_li];LOG_OK=LOG_PATH;break;}catch(_le){}}
 var _origLog=log;
 log=function(m){try{_origLog(m);}catch(e){}try{if(LOG_OK)files.append(LOG_OK,"\n"+new Date().toLocaleTimeString()+" "+m);}catch(e2){}};
-toast("V10.6 start log:"+LOG_OK);
-log("V10.6 start log:"+LOG_OK);
+toast("V10.7 start log:"+LOG_OK);
+log("V10.7 start log:"+LOG_OK);
 function clickUpClickable(node){
   var p=node;
   for(var i=0;i<6;i++){
@@ -36,8 +36,9 @@ function dumpKeys(){
       else if(t.indexOf("免费")>=0||t.indexOf("霸王餐")>=0){hits.push(t+"@y="+all[i].bounds().centerY());}
       }catch(e){}
     }
+    try{var _act="";try{_act=currentActivity();}catch(e){}log("pkg="+currentPackage()+" act="+_act);}catch(e){}
     if(hits.length>0){log("屏上("+all.length+")免费相关:"+hits.join("|"));toast("活动在线x"+n);}
-    else{log("无免费词,TextView="+all.length);}
+    else{var _s=[];for(var _j=0;_j<Math.min(all.length,15);_j++){try{var _tt=all[_j].text()||"";if(_tt)_s.push(_tt.slice(0,12));}catch(e){}}log("无免费词,TextView="+all.length+" top15="+_s.join("/"));}
   }catch(e){log("dump失败:"+e);}
 }
 function tryOne(node,tag){
@@ -67,7 +68,7 @@ function tryAllKw(tag){
   return false;
 }
 function openMianFeiShi(){
-  toast("launch dzdp");log("launch dzdp");try{app.launch("com.dianping.v1");toast("launched");log("launched");}catch(e){toast("launch fail");log("launch fail:"+e);}sleep(2000);try{toast("pkg:"+currentPackage());log("pkg:"+currentPackage());}catch(e2){}
+  toast("launch dzdp");log("launch dzdp");var _ok=false;for(var _r=0;_r<3;_r++){try{app.launch("com.dianping.v1");}catch(e){log("launch err:"+e);}try{app.launchApp("大众点评");}catch(e){}sleep(3500);var _pkg="";try{_pkg=currentPackage();}catch(e){}log("launch try"+_r+" pkg="+_pkg);toast("launch try"+_r+" "+_pkg);if(_pkg=="com.dianping.v1"){_ok=true;break;}}if(!_ok){toast("点评没启动,查后台弹出/自启动权限");log("LAUNCH FAIL,stay="+currentPackage());}
   toast("点右卡:免费试 2万个活动在线");
   toast("wait dzdp");for(var _w=0;_w<5;_w++){sleep(1000);log("wait"+_w);}closePopup();toast("wait done");
   for(var s=0;s<10;s++){

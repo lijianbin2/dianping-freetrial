@@ -108,3 +108,8 @@ outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进
 - V10.5 只写 /sdcard，实测没文件（没跑新版或没存储权限），改试 3 个路径：/sdcard/hamibot_free_log.txt -> ./hamibot_free_log.txt -> /sdcard/Download/hamibot_free_log.txt，哪个能写用哪个。
 - toast 直接报 V10.6 start log:实际路径，跑完凭 toast 就知道写到哪了。
 
+
+## V10.7（2026-09-13）：强启动点评
+- 日志实锤：app.launch 后 pkg 仍是 com.miui.home，根本没进点评，后面扫卡全是桌面 50 个 TextView，当然找不到免费试。
+- 改 3 次 launch+launchApp 循环，每次查包名，3 次还进不去直接报 后台弹出/自启动权限。dumpKeys 加 pkg/act + 无词时打前 15 文本。
+
