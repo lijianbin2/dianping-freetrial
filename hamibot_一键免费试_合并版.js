@@ -1,8 +1,8 @@
 // V6 2026-09-13: 右卡=入口(免费试 2万个活动在线).标题是图片无文本节点,盯活动在线整卡
 auto.waitFor();
 try{device.wakeUpIfNeeded();}catch(e){}
-toast("V10 start");
-log("V10 start");
+toast("V10.1 start");
+log("V10.1 start");
 function clickUpClickable(node){
   var p=node;
   for(var i=0;i<6;i++){
@@ -61,7 +61,7 @@ function tryAllKw(tag){
   return false;
 }
 function openMianFeiShi(){
-  try{app.launch("com.dianping.v1");}catch(e){}
+  toast("launch dzdp");log("launch dzdp");try{app.launch("com.dianping.v1");toast("launched");log("launched");}catch(e){toast("launch fail");log("launch fail:"+e);}sleep(2000);try{toast("pkg:"+currentPackage());log("pkg:"+currentPackage());}catch(e2){}
   toast("点右卡:免费试 2万个活动在线");
   sleep(5000);closePopup();
   for(var s=0;s<10;s++){
