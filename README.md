@@ -76,3 +76,10 @@ outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进
 
 ## 运行顺序
 1. dazhongdianping_home.js 首页模板；2. dazhongdianping_mianfeishi.js 打开免费试；3. dazhongdianping_mianfeishi_meishi.js 切美食；4. dazhongdianping_meishi_filter100_20km.js 主脚本筛选报名。全部直接粘贴到 Hamibot 运行。
+
+
+## V9（2026-09-13）：修复进免费试后无动作
+- 原因：免费试标题常是图片、无文本节点，	extContains(免费试) 扫不到就直接 throw，脚本在 V8 start 后直接退出，所以全程无 toast。
+- 修复：nsureMeishi() 不再抛错，扫不到也继续扫卡；每次扫卡都 	oast 扫卡 free xN；合并版去掉重复的 openMianFeiShi() 调用。
+- 必查：手机设置 → 无障碍 → 开 Hamibot；Hamibot App 内自动化/悬浮窗权限全开，否则 TextView 数量为 0，什么字都扫不到。
+
