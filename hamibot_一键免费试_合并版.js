@@ -1,8 +1,8 @@
 // V6 2026-09-13: 右卡=入口(免费试 2万个活动在线).标题是图片无文本节点,盯活动在线整卡
 auto.waitFor();
 try{device.wakeUpIfNeeded();}catch(e){}
-toast("V8 start");
-log("V8 start");
+toast("V9 start");
+log("V9 start");
 function clickUpClickable(node){
   var p=node;
   for(var i=0;i<6;i++){
@@ -88,9 +88,9 @@ function openMianFeiShi(){
   toast("没找到入口,看log活动在线");
   return false;
 }
-openMianFeiShi();
+
 function ensureMeishi(){
-  if(!textContains("\u514d\u8d39\u8bd5").findOne(5000))throw new Error("need free page");
+  if(!textContains("\u514d\u8d39\u8bd5").findOne(2000)){toast("V9:没扫到免费试字样,继续");log("V9 no free marker, go on");}
   if(text("\u7f8e\u98df").findOnce()){toast("in meishi");return;}
   for(var r=0;r<5;r++){
  toast("switch meishi try "+r);log("switch meishi try "+r);
@@ -111,7 +111,7 @@ function tryOpenQualifiedOnce(){
   for(var i=0;i<tvs.length;i++){try{var o=tvs[i];var b=o.bounds();all.push({t:o.text()||"",top:b.top,cy:b.centerY(),obj:o});}catch(e){}}
   var ax=[];
   for(var i=0;i<all.length;i++){if(all[i].t.indexOf("\u514d\u8d39\u62bd")>=0)ax.push(all[i]);}
-  log("free x"+ax.length);
+  log("free x"+ax.length);toast("扫卡 free x"+ax.length);
   ax.sort(function(a,b){return a.cy-b.cy;});
   for(var a=0;a<ax.length;a++){
     var y=ax[a].cy;
@@ -163,4 +163,5 @@ while(true){
   sleep(2500);
 }
 toast("共处理"+count+"家,结束");
+
 

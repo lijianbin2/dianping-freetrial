@@ -5,8 +5,8 @@
 // 备选: 花崎居酒屋 19.3km/110元 同样符合
 auto.waitFor();
 try{device.wakeUpIfNeeded();}catch(e){}
-toast("V8 start");
-log("V8 start");
+toast("V9 start");
+log("V9 start");
 function clickTextParent(txt, timeout){
     timeout = timeout || 5000;
     var node = text(txt).findOne(timeout);
@@ -17,7 +17,7 @@ function clickTextParent(txt, timeout){
 }
 function clickXY(x,y){ var sx=device.width/1280, sy=device.height/2772; click(x*sx,y*sy); sleep(1000); }
 function ensureMeishi(){
-  if(!textContains("\u514d\u8d39\u8bd5").findOne(5000))throw new Error("need free page");
+  if(!textContains("\u514d\u8d39\u8bd5").findOne(2000)){toast("V9:没扫到免费试字样,继续");log("V9 no free marker, go on");}
   if(text("\u7f8e\u98df").findOnce()){toast("in meishi");return;}
   for(var r=0;r<5;r++){
  toast("switch meishi try "+r);log("switch meishi try "+r);
@@ -38,7 +38,7 @@ function tryOpenQualifiedOnce(){
   for(var i=0;i<tvs.length;i++){try{var o=tvs[i];var b=o.bounds();all.push({t:o.text()||"",top:b.top,cy:b.centerY(),obj:o});}catch(e){}}
   var ax=[];
   for(var i=0;i<all.length;i++){if(all[i].t.indexOf("\u514d\u8d39\u62bd")>=0)ax.push(all[i]);}
-  log("free x"+ax.length);
+  log("free x"+ax.length);toast("扫卡 free x"+ax.length);
   ax.sort(function(a,b){return a.cy-b.cy;});
   for(var a=0;a<ax.length;a++){
     var y=ax[a].cy;
@@ -100,3 +100,4 @@ if(textContains("已报名").findOne(3000) || textContains("报名成功").findO
 // 报名结果页点完成 返回详情
 var doneBtn = text("完成").findOne(3000);
 if(doneBtn){ doneBtn.click(); sleep(2000); }
+
