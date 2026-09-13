@@ -87,39 +87,50 @@ function openMianFeiShi(){
 }
 openMianFeiShi();
 function ensureMeishi(){
-  if(!textContains("免费试").findOne(5000)) throw new Error("请先进入免费试页");
-  if(text("美食").findOne(2000)){ toast("已在美食分类"); return; }
-  var c=text("全部分类").findOne(5000);
-  if(c){ try{ c.parent().click(); }catch(e){ c.click(); } } else { clickXY(481,368); }
-  sleep(1200);
-  var m=text("美食").findOne(5000);
-  if(!m) throw new Error("没找到美食分类");
-  try{ m.parent().click(); }catch(e){ clickXY(640,634); }
-  sleep(1500);
-  toast("已切换到美食分类");
+  if(!textContains("\u514d\u8d39\u8bd5").findOne(5000))throw new Error("need free page");
+  if(text("\u7f8e\u98df").findOne(2000)){toast("in meishi");return;}
+  for(var r=0;r<3;r++){
+    var c=null;try{c=text("\u5168\u90e8\u5206\u7c7b").findOne(2000);}catch(e){}
+    if(c){try{var pp=c.parent();if(pp)pp.click();else c.click();}catch(e){try{c.click();}catch(e2){}}}
+    else{var sx=device.width/1280,sy=device.height/2772;click(481*sx,1529*sy);}
+    sleep(1500);
+    try{var ms=className("android.widget.TextView").find();var ks="";for(var i=0;i<Math.min(ms.length,30);i++){ks+=(ms[i].text()||"")+",";}log("menu:"+ks.slice(0,100));}catch(e){}
+    var m=null;try{m=text("\u7f8e\u98df").findOne(2000);}catch(e){}
+    if(m){try{var mp=m.parent();if(mp)mp.click();else m.click();}catch(e){var sx2=device.width/1280,sy2=device.height/2772;click(640*sx2,634*sy2);}sleep(1500);toast("to meishi");return;}
+  }
+  toast("keep list");
 }
+
 function tryOpenQualifiedOnce(){
   var tvs=className("android.widget.TextView").find();
-  var items={};
-  tvs.forEach(function(o){
-    try{ var b=o.bounds(); var key=Math.floor(b.top/280); if(!items[key]) items[key]=[]; items[key].push({t:(o.text()||""), top:b.top, obj:o}); }catch(e){}
-  });
-  var keys=Object.keys(items).sort(function(a,b){return a-b;});
-  for(var i=0;i<keys.length;i++){
-    var arr=items[keys[i]]; var joined=""; for(var j=0;j<arr.length;j++) joined+=arr[j].t+" ";
-    var vM=joined.match(/价值\s*([0-9\s]+)\s*元/); var dM=joined.match(/([0-9]+(\.[0-9]+)?)\s*km/);
-    if(vM && dM){
-      var val=parseInt(vM[1].replace(/\s+/g,""),10); var dist=parseFloat(dM[1]);
-      if(val>100 && dist<20){
-        var anchor=arr.sort(function(a,b){return (b.t||"").length-(a.t||"").length;})[0].obj;
-        var p=anchor; for(var k=0;k<4;k++){ try{ if(p.clickable()) break; p=p.parent(); }catch(e){break;} }
-        try{ p.click(); }catch(e){ anchor.parent().click(); }
-        sleep(2500); return {val:val, dist:dist, text:joined};
-      }
+  var all=[];
+  for(var i=0;i<tvs.length;i++){try{var o=tvs[i];var b=o.bounds();all.push({t:o.text()||"",top:b.top,cy:b.centerY(),obj:o});}catch(e){}}
+  var ax=[];
+  for(var i=0;i<all.length;i++){if(all[i].t.indexOf("\u514d\u8d39\u62bd")>=0)ax.push(all[i]);}
+  log("free x"+ax.length);
+  ax.sort(function(a,b){return a.cy-b.cy;});
+  for(var a=0;a<ax.length;a++){
+    var y=ax[a].cy;
+    var win=[];
+    for(var i=0;i<all.length;i++){if(Math.abs(all[i].cy-y)<350)win.push(all[i]);}
+    win.sort(function(x,y){return x.top-y.top;});
+    var joined="";for(var j=0;j<win.length;j++)joined+=win[j].t+"|";
+    var clean=joined.split(String.fromCharCode(160)).join("").replace(/\s+/g,"");
+    var vM=clean.match(/\u4ef7\u503c([0-9]+)\u5143/);
+    var dM=clean.match(/([0-9]+(\.[0-9]+)?)km/);
+    var val=vM?parseInt(vM[1],10):-1;
+    var dist=dM?parseFloat(dM[1]):-1;
+    log("cand"+a+":v"+val+"d"+dist);
+    if(val>100&&dist>=0&&dist<20){
+      log("hit"+val+"yuan"+dist+"km");
+      var p=ax[a].obj;
+      for(var k=0;k<6;k++){try{if(!p)break;if(p.clickable()){p.click();sleep(2500);return{val:val,dist:dist,text:clean};}p=p.parent();}catch(e){break;}}
+      try{var b2=ax[a].obj.bounds();click(b2.centerX(),b2.centerY());sleep(2500);return{val:val,dist:dist,text:clean};}catch(e){}
     }
   }
   return null;
 }
+
 function doBaoMing(){
   var want=text("我要报名").findOne(5000);
   if(want){ want.click(); sleep(2000); }
