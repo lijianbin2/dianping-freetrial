@@ -63,3 +63,16 @@ Hamibot 脚本：大众点评 App「免费试」频道，自动筛选**价值 10
 
 - 锁屏密码、手机号等敏感信息只口头传递，不落盘、不进脚本
 - 大众点评改版后坐标可能漂移，先用 `adb shell uiautomator dump` 重抓再改脚本
+
+仓库：https://github.com/lijianbin2/dianping-freetrial
+
+## Git 代理推送
+本仓库走本地代理推送 GitHub，代理 http://127.0.0.1:7890，已配 git http.proxy / https.proxy。
+fetch / push 前确认代理可用，命令：git fetch origin；git push -u origin main。
+
+## 清理说明
+outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进仓库（见 .gitignore）。
+2026-09-13 已用 git clean -fdX 清理约 150MB，docs/ 仅保留 3 张代表截图。
+
+## 运行顺序
+1. dazhongdianping_home.js 首页模板；2. dazhongdianping_mianfeishi.js 打开免费试；3. dazhongdianping_mianfeishi_meishi.js 切美食；4. dazhongdianping_meishi_filter100_20km.js 主脚本筛选报名。全部直接粘贴到 Hamibot 运行。
