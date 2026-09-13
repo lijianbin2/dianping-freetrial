@@ -1,0 +1,8 @@
+# Hamibot / UIAutomator2 运行产物：截图与层级 dump 不进仓库
+*.png
+*.jpg
+*.xml
+!docs/*.png
+# 本地调试 dump（体积大，随时可重抓）
+work/hamibot-dev/dump/
+*.log
