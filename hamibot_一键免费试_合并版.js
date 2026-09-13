@@ -4,11 +4,11 @@ try{device.wakeUpIfNeeded();}catch(e){}
 var LOG_CANDS=["/sdcard/hamibot_free_log.txt","./hamibot_free_log.txt","/sdcard/Download/hamibot_free_log.txt"];
 var LOG_PATH="/sdcard/hamibot_free_log.txt";
 var LOG_OK="";
-for(var _li=0;_li<LOG_CANDS.length;_li++){try{files.write(LOG_CANDS[_li],"=== V10.8 start "+new Date().toLocaleString()+" ==="+"\n");LOG_PATH=LOG_CANDS[_li];LOG_OK=LOG_PATH;break;}catch(_le){}}
+for(var _li=0;_li<LOG_CANDS.length;_li++){try{files.write(LOG_CANDS[_li],"=== V10.9 start "+new Date().toLocaleString()+" ==="+"\n");LOG_PATH=LOG_CANDS[_li];LOG_OK=LOG_PATH;break;}catch(_le){}}
 var _origLog=log;
 log=function(m){try{_origLog(m);}catch(e){}try{if(LOG_OK)files.append(LOG_OK,"\n"+new Date().toLocaleTimeString()+" "+m);}catch(e2){}};
-toast("V10.8 start log:"+LOG_OK);
-log("V10.8 start log:"+LOG_OK);
+toast("V10.9 start log:"+LOG_OK);
+log("V10.9 start log:"+LOG_OK);
 function clickUpClickable(node){
   var p=node;
   for(var i=0;i<6;i++){
@@ -159,18 +159,37 @@ function tryOpenQualifiedOnce(){
 }
 
 function doBaoMing(){
-  var want=text("我要报名").findOne(5000);
-  if(want){ want.click(); sleep(2000); }
-  var q=text("确认报名").findOne(8000);
-  if(q){ var qp=null; try{ qp=q.parent(); }catch(e){} if(qp) qp.click(); else q.click(); sleep(2500); }
-  else { var sx=device.width/1280, sy=device.height/2772; click(640*sx,2558*sy); sleep(2000); }
-  if(textContains("仅 Lv6").findOnce() || textContains("等级不够").findOnce() || textContains("暂未满足").findOnce() || textContains("橙V").findOnce()){
-    return "level_buzu";
+  log("doBaoMing start pkg="+currentPackage());
+  var want=text("我要报名").findOne(6000);
+  if(!want){
+    log("doBaoMing: no 我要报名,back");
+    try{var w2=textContains("我要报名").findOne(2000); if(w2){log("found contains version"); clickUpClickable(w2);} else { back(); sleep(2000); return "no_entry"; }}catch(e){ back(); sleep(2000); return "no_entry"; }
+  } else {
+    log("doBaoMing: click 我要报名");
+    if(!clickUpClickable(want)){ try{want.click();}catch(e){ try{var wb=want.bounds(); click(wb.centerX(),wb.centerY());}catch(e2){} } }
+    sleep(3000);
   }
-  var done=text("完成").findOne(3000);
-  if(done){ done.click(); sleep(2000); }
+  var q=text("确认报名").findOne(8000);
+  if(!q){ try{q=textContains("确认报名").findOne(2000);}catch(e){} }
+  if(q){
+    try{log("doBaoMing: click 确认报名 y="+q.bounds().centerY());}catch(e){log("doBaoMing: click 确认报名");}
+    if(!clickUpClickable(q)){ try{q.click();}catch(e){ try{var qb=q.bounds(); click(qb.centerX(),qb.centerY());}catch(e2){} } }
+    sleep(3500);
+  } else {
+    log("doBaoMing: NO 确认报名,不盲点底部坐标,直接back防误点橙V");
+    toast("没找到确认报名,回退防误点");
+    back(); sleep(2500); return "no_confirm";
+  }
+  if(textContains("仅 Lv6").findOnce()||textContains("仅限 Lv").findOnce()||textContains("等级不够").findOnce()||textContains("暂未满足").findOnce()||textContains("当前等级").findOnce()){
+    log("doBaoMing: level_buzu true"); return "level_buzu";
+  }
+  log("doBaoMing: no level block,找完成");
+  var done=text("完成").findOne(4000);
+  if(done){ log("doBaoMing: click 完成"); try{done.click();}catch(e){clickUpClickable(done);} sleep(2000); }
+  else { log("doBaoMing: no 完成"); }
   back(); sleep(2500);
-  return "ok";
+  try{ if(!textContains("免费抽").findOnce()&&!textContains("免费试").findOnce()){ log("doBaoMing: 再back一次回列表"); back(); sleep(2500); } }catch(e){}
+  log("doBaoMing ok"); return "ok";
 }
 toast("defs ok,call open");log("defs ok,call open");var openRet=false;try{openRet=openMianFeiShi();}catch(e){toast("open err");log("open err:"+e);}toast("open ret="+openRet);log("open ret="+openRet);
 if(!ensureMeishi()){toast("no meishi,exit");exit();}
@@ -181,7 +200,7 @@ while(true){
   for(var s=0;s<8;s++){ found=tryOpenQualifiedOnce(); if(found) break; swipe(device.width/2, device.height*0.75, device.width/2, device.height*0.30, 700); sleep(1800); }
   if(!found){ toast("没找到更多符合商家,结束"); break; }
   toast("已打开 价值"+found.val+"元 "+found.dist+"km");
-  var r=doBaoMing(); count++;
+  log("open done v="+found.val+" d="+found.dist+" call doBaoMing"); var r=doBaoMing(); log("doBaoMing ret="+r); count++;
   if(r=="level_buzu"){ toast("等级不够,结束"); break; }
   sleep(2500);
 }
