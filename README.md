@@ -4,6 +4,8 @@ Hamibot 脚本：大众点评 App「免费试」频道，自动筛选**价值 10
 
 ## 当前推荐（2026-09-14）
 
+> 2026-09-14：根目录 Hamibot 脚本已清空，先用 U2（work/u2_prototype.py）在免费试页验证通过后再转 Hamibot，手机上暂不传任何版本。
+
 - 手机上只传一个：hamibot_freetrial_V25.js（从免费试列表页开始，不碰首页）。
 - 点运行后必须先看到 V25 start，再看到 V25 auto ok:true；只看到前者=无障碍没开。
 - 先跑 hamibot_smoke.js：冒烟都不弹=Hamibot 环境问题，不是脚本问题。
