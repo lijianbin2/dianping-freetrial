@@ -83,3 +83,9 @@ outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进
 - 修复：nsureMeishi() 不再抛错，扫不到也继续扫卡；每次扫卡都 	oast 扫卡 free xN；合并版去掉重复的 openMianFeiShi() 调用。
 - 必查：手机设置 → 无障碍 → 开 Hamibot；Hamibot App 内自动化/悬浮窗权限全开，否则 TextView 数量为 0，什么字都扫不到。
 
+
+## V10: verify meishi tab before paging
+- Fix: old ensureMeishi returned early on any text mei-shi, paging in wrong category.
+- New: isMeishiTab checks y 1300-1750 (category bar); click all mei-shi candidates, verify, return true/false; exit if false.
+- Expect toast: V10 start -> switch meishi try -> to meishi ok ->扫卡 free xN.
+
