@@ -144,3 +144,7 @@ outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进
 ## V16
 - V15 bug: doBaoMing blind back left free list (no_entry/no_confirm/done). Fix: guardBack skips back when already in list, max 2 backs with verify, lost stops loop. Meishi list sorted DESC so popup item tapped before top channel entry.
 - File: hamibot_免费试页开始_V16.js, node --check pass.
+
+## V17
+- 修V16同卡原地打转:点卡后校验真离开列表,没打开就试下一张;no_entry/no_confirm连败上滑跳过该卡,3连败多滑一次。
+
