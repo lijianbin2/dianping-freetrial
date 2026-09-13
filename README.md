@@ -118,3 +118,5 @@ outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进
 - 日志：3 次 launch 全是 com.miui.personalassistant（负一屏），top15 全是 天气/计算器/支付宝…根本没进点评，MIUI 后台启动被拦。
 - 改：自动打不开就 toast 请手动打开点评首页，等 30s 轮询包名，看到 com.dianping.v1 才继续扫免费试。
 
+
+## V10.9 misclick fix
