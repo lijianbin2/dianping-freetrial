@@ -122,7 +122,7 @@ def parse_cards(xml):
     for vcy, vv in vals:
         best = None
         for dcy, dd in dists:
-            if abs(dcy - vcy) < 350:
+            if abs(dcy - vcy) < 200:
                 if best is None or abs(dcy - vcy) < abs(best[0]-vcy):
                     best = (dcy, dd)
         if best:

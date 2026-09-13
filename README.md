@@ -2,12 +2,12 @@
 
 Hamibot 脚本：大众点评 App「免费试」频道，自动筛选**价值 100 元以上、距离 20km 以内**的美食商家并循环报名，直到出现等级不够的提示为止。
 
-## 当前推荐（2026-09-13）
+## 当前推荐（2026-09-14）
 
-- 手机上只传一个：hamibot_freetrial_V22.js（从免费试列表页开始，不碰首页）。
-- 点运行后必须先看到 V22 start，再看到 V22 auto ok:true；只看到前者=无障碍没开。
+- 手机上只传一个：hamibot_freetrial_V25.js（从免费试列表页开始，不碰首页）。
+- 点运行后必须先看到 V25 start，再看到 V25 auto ok:true；只看到前者=无障碍没开。
 - 先跑 hamibot_smoke.js：冒烟都不弹=Hamibot 环境问题，不是脚本问题。
-- V22相对V21改三处：删绝对坐标盲点（无全部分类直接停止）+ 详情复核（详情距离>=20km跳过far / 已报名无我要报名跳过already）+ 主循环同步处理far/already；U2先行验证（work/u2_prototype.py）再转Hamibot。
+- V25相对V23改一处（扫卡改价值锚定，与U2同逻辑，见文末V25节）；V23相对V22改三处：删绝对坐标盲点（无全部分类直接停止）+ 详情复核（详情距离>=20km跳过far / 已报名无我要报名跳过already）+ 主循环同步处理far/already; V23 vs V22: window 350->200 + y<600 fastfilter guard；U2先行验证（work/u2_prototype.py）再转Hamibot。
 
 ## 环境
 
@@ -51,13 +51,14 @@ Hamibot 脚本：大众点评 App「免费试」频道，自动筛选**价值 10
 4. 成功（含「报名成功 / 已报名」）→ 点「完成」→ 返回列表 → 下一家
 5. 出现「暂未满足报名要求 / 仅 Lv6 / 等级不够」→ 截图存档，循环结束
 
-## 实测战绩（2026-09-13）
+## 实测战绩（2026-09-14）
 
 - 本源食堂 173 元 / 18.8km ✅
 - 花崎居酒屋 110 元 / 19.3km ✅
 - 赫小野·长沙大排档 122 元 / 17.8km ✅
 - 傷心酒店·小酒馆 149 元 / 17.6km（橙 V 专享）✅
 - 厝内潮汕卤水火锅 326 元 / 20.2km →「仅 Lv6-Lv8 且橙 V 可报」→ 结束（见 docs/level_buzu.png）
+- 2026-09-14 00:03 U2实测（C:\Temp\u2_run.log）：起点=手动停免费试·美食列表，滑8页，价值>100且<20km无一家合格（高价值全21km+，近的全<100元），到底正常结束，全程未碰快筛/搜索/宝箱/底部Tab。
 
 ## 目录结构
 
@@ -159,14 +160,19 @@ outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进
 ## V18
 - 修启动即死:不再覆盖系统log函数,改用自有L()写日志;启动加toast,无动作也能定位卡在哪。
 
-## V22（2026-09-13）：U2先行验证后转换，详情复核补齐
+## V23（2026-09-13）：U2先行验证后转换，详情复核补齐
 - 流程：PC用uiautomator2调通（起点=手动停在免费试列表），再转Hamibot。U2原型work/u2_prototype.py + 全量扫描work/u2_scan.py：整列表7卡全不达标（价值>100且距离<20km），只滑不动，不碰快筛（连锁餐厅等selected=false已确认）。
-- 改（相对V21）：删绝对坐标盲点（481,1529 fallback改停止）；详情复核补两项——详情距离>=20km回列表跳过（far，修列表19.8/详情20.4偏差）、有已报名无我要报名回列表跳过（already）；主循环failStreak分支同步处理far/already。
-- 文件：hamibot_freetrial_V22.js（ASCII名，LF无BOM，node --check通过）。起点仍是手动停在免费试列表页，日志写手机txt。
+- 改（相对V21）：删绝对坐标盲点（481,1529 fallback改停止）；详情复核补两项——详情距离>=20km回列表跳过（far，修列表19.8/详情20.4偏差）、有已报名无我要报名回列表跳过（already）；主循环failStreak分支同步处理far/already; V23 vs V22: window 350->200 + y<600 fastfilter guard。
+- 文件：hamibot_freetrial_V23.js（ASCII名，LF无BOM，node --check通过）。起点仍是手动停在免费试列表页，日志写手机txt。
 - 待验证：等列表刷出价值>100且距离<20km的卡后实测开卡报名一单。
 
-## V22.1 U2 window350 + 防误点连锁餐厅 guard
+## V23.1 U2 window350 + 防误点连锁餐厅 guard
 - 只读dump验证：当前屏5价配6距，价距Y差全部恰好136，证明120窗口必配丢、350正确；5张全价值<100，无合格卡。
 - 误点连锁餐厅根因：代码从无点快筛逻辑（四快筛selected=false已确认），是120窗口配错致开卡坐标飘。
-- 修：U2与Hamibot V22价距配对窗口统一120→350；开卡前加guard：target y<600拒绝点击、上滑跳过（快筛栏y≈486，防误点连锁餐厅/附近3km等）。
-- U2原型work/u2_prototype.py + 全量扫描work/u2_scan.py已同步；Hamibot V22.js逻辑与U2对齐。
+- 修：U2与Hamibot V23价距配对窗口统一120→350；开卡前加guard：target y<600拒绝点击、上滑跳过（快筛栏y≈486，防误点连锁餐厅/附近3km等）。
+- U2原型work/u2_prototype.py + 全量扫描work/u2_scan.py已同步；Hamibot V23.js逻辑与U2对齐。
+
+## V25（2026-09-14）：价值锚定，与U2同逻辑
+- 改（相对V23）：扫卡改价值锚定——只收y>=650/700纯数字价值与xkm距离，就近配对（窗口200，U2已验证），开卡点x=640中心；禁点快筛芯片行（y约441-532连锁餐厅等）/搜索栏/宝箱/底部橙V Tab；起点禁back（back只允许详情→列表）；阈值VAL_MIN=100/DIST_MAX=20；遇等级不够/仅Lv6结束；日志写手机txt。
+- 文件：hamibot_freetrial_V25.js（176行，10633字节，node --check通过）。生成器work/make_v25.py（源V23），U2原型work/u2_prototype.py + 全量扫描work/u2_scan.py（窗口200已同步）。
+- 验证：U2八页无合格实测通过（见实测战绩）；Hamibot待实测（先跑hamibot_smoke.js，再看V25 start + V25 auto ok:true）。
