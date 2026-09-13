@@ -89,3 +89,10 @@ outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进
 - New: isMeishiTab checks y 1300-1750 (category bar); click all mei-shi candidates, verify, return true/false; exit if false.
 - Expect toast: V10 start -> switch meishi try -> to meishi ok ->扫卡 free xN.
 
+
+## V10.4（2026-09-13）：修吸顶后面食校验 + 价值空格数字兜底
+- 根因：切美食成功后顶栏吸顶到 y~368，老 isMeishiTab 只认 y 1300-1750，永远 false，导致 ensureMeishi 空转 5 次 switch meishi try 后退出，看起来就是 进去免费试后不动。
+- 修复1：isMeishiTab 改为 有美食且无全部分类即算成功（tab check mei=true quan=false），去掉 Y 区间判断。
+- 修复2：美食候选按 centerY 排序，弹窗项优先点；点全部分类改用 bounds 中心 click 并打日志。
+- 修复3：价值解析加兜底，clean 匹配不到时用 joined 宽松取 价值...元 再提数字，兼容 价值 1 5 9 元这种被拆成三段 TextView 的情况。
+- 预期 toast：V10.4 start -> switch meishi try -> to meishi ok -> 扫卡 free xN -> hit...yuan...km。

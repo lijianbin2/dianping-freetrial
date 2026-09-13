@@ -1,8 +1,8 @@
 // V6 2026-09-13: 右卡=入口(免费试 2万个活动在线).标题是图片无文本节点,盯活动在线整卡
 auto.waitFor();
 try{device.wakeUpIfNeeded();}catch(e){}
-toast("V10.2 start");
-log("V10.2 start");
+toast("V10.4 start");
+log("V10.4 start");
 function clickUpClickable(node){
   var p=node;
   for(var i=0;i<6;i++){
@@ -91,32 +91,33 @@ function openMianFeiShi(){
 
 function isMeishiTab(){
   try{
-    var ns=text("\u7f8e\u98df").find();
-    for(var i=0;i<ns.length;i++){
-      try{var y=ns[i].bounds().centerY();if(y>=1300&&y<=1750)return true;}catch(e){}
-    }
+    var hasMei=text("\u7f8e\u98df").findOnce()!=null;
+    var hasQuan=text("\u5168\u90e8\u5206\u7c7b").findOnce()!=null;
+    log("tab check mei="+hasMei+" quan="+hasQuan);
+    if(hasMei&&!hasQuan)return true;
   }catch(e){}
   return false;
 }
 function ensureMeishi(){
-  if(!textContains("\u514d\u8d39\u8bd5").findOne(2000)){toast("V10:no free marker,go on");log("V10 no free marker, go on");}
+  if(!textContains("\u514d\u8d39\u8bd5").findOne(2000)){toast("in free list,switch meishi");log("in free list,switch meishi");}
   if(isMeishiTab()){toast("in meishi");return true;}
   for(var r=0;r<5;r++){
     toast("switch meishi try "+r);log("switch meishi try "+r);
-    var c=null;try{c=text("\u5168\u90e8\u5206\u7c7b").findOnce();}catch(e){}
-    if(c){try{var pp=c.parent();if(pp)pp.click();else c.click();}catch(e){try{c.click();}catch(e2){}}}
-    else{var sx=device.width/1280,sy=device.height/2772;click(481*sx,1529*sy);}
+    var c=null;try{c=text("\u5168\u90e8\u5206\u7c7b").findOne(1500);}catch(e){}
+    if(c){try{var cb=c.bounds();log("tap quanfenlei "+cb.centerX()+","+cb.centerY());click(cb.centerX(),cb.centerY());}catch(e){try{c.click();}catch(e2){}}}
+    else{log("no quanfenlei,tap 481,1529");var sx=device.width/1280,sy=device.height/2772;click(481*sx,1529*sy);}
     sleep(2500);
-    var cands=null;try{cands=text("\u7f8e\u98df").find();}catch(e){}
+    var cands=null;try{cands=text("\u7f8e\u98df").find();}catch(e){}try{var dd=descContains("\u7f8e\u98df").find();if(dd&&dd.length>0){var tmp=[];for(var di=0;di<cands.length;di++)tmp.push(cands[di]);for(var dj=0;dj<dd.length;dj++)tmp.push(dd[dj]);cands=tmp;}}catch(e){}log("meishi cands="+(cands?cands.length:0));
     if(cands&&cands.length>0){
+      try{cands.sort(function(a,b){return a.bounds().centerY()-b.bounds().centerY();});}catch(e){}
       for(var mi=0;mi<cands.length;mi++){
-        try{var m=cands[mi];log("meishi cand y="+m.bounds().centerY());var mp=null;try{mp=m.parent();}catch(e){}if(mp)mp.click();else m.click();}catch(e){}
+        try{var m=cands[mi];log("meishi cand y="+m.bounds().centerY());try{var mb=m.bounds();click(mb.centerX(),mb.centerY());}catch(e2){try{m.click();}catch(e3){}}}catch(e){}
         sleep(3000);
         if(isMeishiTab()){toast("to meishi ok");return true;}
       }
     }
   }
-  toast("not in meishi");return false;
+  toast("not in meishi");log("not in meishi after 5 tries");return false;
 }
 
 function tryOpenQualifiedOnce(){
@@ -137,6 +138,7 @@ function tryOpenQualifiedOnce(){
     var vM=clean.match(/\u4ef7\u503c([0-9]+)\u5143/);
     var dM=clean.match(/([0-9]+(\.[0-9]+)?)km/);
     var val=vM?parseInt(vM[1],10):-1;
+    if(val<0){try{var vm2=joined.match(/\u4ef7\u503c([\s\S]{1,12}?)\u5143/);if(vm2){var digits=vm2[1].replace(/\D/g,"");if(digits.length>0)val=parseInt(digits,10);}}catch(e){}}
     var dist=dM?parseFloat(dM[1]):-1;
     log("cand"+a+":v"+val+"d"+dist);
     if(val>100&&dist>=0&&dist<20){
