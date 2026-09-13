@@ -140,3 +140,7 @@ outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进
 - V13 日志实锤：try0 点全部分类后，美食 y=634 被 H*0.35=970 的顶部过滤杀掉（popup cands=0）；try1 点到弹窗标题（y=368）把弹窗关了，cands=0 失败退出。
 - 改：删掉美食 Y 高度过滤（列表页本来就没有美食文字，弹窗里出现的任何美食都在弹窗里）；点全部分类选 Y 最小的（顶部 tab 栏），不点弹窗标题。
 - 文件：hamibot_免费试页开始_V15.js（由 V14 复制，仅换 ensureMeishi + V15 字样），node --check 通过。
+
+## V16
+- V15 bug: doBaoMing blind back left free list (no_entry/no_confirm/done). Fix: guardBack skips back when already in list, max 2 backs with verify, lost stops loop. Meishi list sorted DESC so popup item tapped before top channel entry.
+- File: hamibot_免费试页开始_V16.js, node --check pass.
