@@ -1,27 +1,55 @@
 // 大众点评免费试 美食 一键版 (Hamibot直接粘贴运行)
 // 流程: 启动大众点评 -> 打开免费试 -> 切美食 -> 循环: 价值>100且<20km -> 我要报名 -> 确认报名 -> 完成 -> 下一家, 遇到等级不够结束
 // 基准分辨率 1280x2772, 已验证 REDMI Turbo 4 Pro
+// 2026-09-13修复: 首页免费试入口之前只认"3万个活动在线"且只找2层父容器,经常点不中;现改为回顶+多关键词+找5层+搜索兜底
 "ui";
 auto.waitFor();
 function clickXY(x,y){ var sx=device.width/1280, sy=device.height/2772; click(x*sx,y*sy); sleep(1000); }
+function clickUpClickable(node){
+  var p=node;
+  for(var i=0;i<5;i++){ try{ if(!p) break; if(p.clickable()){ p.click(); return true; } p=p.parent(); }catch(e){ break; } }
+  return false;
+}
+function verifyInMianFeiShi(){
+  return textContains("免费抽").findOne(2000) || text("免费试").findOne(2000) || textContains("高中奖率").findOne(2000) || textContains("免费试用").findOne(2000);
+}
 function openMianFeiShi(){
   try{ app.launch("com.dianping.v1"); }catch(e){}
-  sleep(3000);
-  var tip = text("3\u4e07\u4e2a\u6d3b\u52a8\u5728\u7ebf").findOne(8000);
-  if(!tip){
-    swipe(device.width/2, device.height*0.7, device.width/2, device.height*0.3, 500);
-    tip = text("3\u4e07\u4e2a\u6d3b\u52a8\u5728\u7ebf").findOne(5000);
+  sleep(3500);
+  for(var t=0;t<2;t++){ swipe(device.width/2, device.height*0.3, device.width/2, device.height*0.8, 600); sleep(1000); }
+  var keywords=["3万个活动在线","免费试","免费抽"];
+  for(var round=0;round<4;round++){
+    for(var k=0;k<keywords.length;k++){
+      var kw=keywords[k];
+      var tip=textContains(kw).findOne(2000);
+      if(tip){
+        log("找到关键词: "+kw);
+        if(clickUpClickable(tip)){ sleep(3000); if(verifyInMianFeiShi()){ toast("已打开免费试"); return true; } }
+        try{ var b=tip.bounds(); click(b.centerX(),b.centerY()); sleep(3000); if(verifyInMianFeiShi()){ toast("已打开免费试"); return true; } }catch(e){}
+      }
+      var d=descContains(kw).findOne(1000);
+      if(d){ if(clickUpClickable(d)){ sleep(3000); if(verifyInMianFeiShi()){ toast("已打开免费试"); return true; } } }
+    }
+    if(round<3){ swipe(device.width/2, device.height*0.7, device.width/2, device.height*0.3, 500); sleep(1500); }
   }
-  if(!tip){ var x=Math.floor(device.width*956/1280), y=Math.floor(device.height*1102/2772); click(x,y); sleep(3000); return true; }
+  toast("关键词没点中,走坐标兜底");
+  var x=Math.floor(device.width*956/1280), y=Math.floor(device.height*1102/2772);
+  click(x,y); sleep(3000);
+  if(verifyInMianFeiShi()){ toast("已打开免费试"); return true; }
   try{
-    var p1=tip.parent(), p2=p1?p1.parent():null;
-    if(p2 && p2.clickable()){ p2.click(); sleep(3000); return true; }
-    if(p1 && p1.clickable()){ p1.click(); sleep(3000); return true; }
+    var s=text("搜索").findOne(3000)||desc("搜索").findOne(3000);
+    if(s){ s.click(); sleep(1500);
+      var input=className("android.widget.EditText").findOne(3000);
+      if(input){ input.setText("免费试"); sleep(1000);
+        var btn=text("搜索").findOne(2000); if(btn) btn.click(); sleep(3000);
+        if(verifyInMianFeiShi()){ toast("已打开免费试"); return true; }
+      }
+    }
   }catch(e){ log(e); }
-  var b=tip.bounds(); click(b.centerX(), b.centerY()); sleep(3000); return true;
+  toast("可能没点中, 请看屏幕确认"); return false;
 }
 function ensureMeishi(){
-  if(!textContains("\u514d\u8d39\u8bd5").findOne(5000)) throw new Error("请先进入免费试页");
+  if(!textContains("免费试").findOne(5000)) throw new Error("请先进入免费试页");
   if(text("美食").findOne(2000)){ toast("已在美食分类"); return; }
   var c=text("全部分类").findOne(5000);
   if(c){ try{ c.parent().click(); }catch(e){ c.click(); } } else { clickXY(481,368); }
