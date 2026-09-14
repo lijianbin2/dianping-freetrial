@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
-# U2 原型: 起点=用户手动停在免费试列表页. 只做: 确认美食 -> 解析卡片(价值>100且距离<20) -> 开卡 -> 详情复核 -> 报名 -> 回列表
+# U2 原型: 起点=用户手动停在免费试列表页. 只做: 确认美食 -> 解析卡片(价值>100且距离<30) -> 开卡 -> 详情复核 -> 报名 -> 回列表
 # 禁止: 点搜索栏/宝箱签到/底部橙V Tab/快筛芯片(高中奖率/附近3km/连锁餐厅/200元以上套餐). 分类阶段零back, back只允许 详情->列表.
 import re, time, sys
 import xml.etree.ElementTree as ET
 import uiautomator2 as u2
 
-SERIAL = "adb-41db6aed-hUrFEI._adb-tls-connect._tcp"
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
+SERIAL = "192.168.31.45:33871"
 VAL_MIN = 100
-DIST_MAX = 20.0
+DIST_MAX = 30.0
 
 T_FREE = "免费抽"
 T_WANT = "我要报名"
@@ -16,8 +22,14 @@ T_DONE = "完成"
 T_ALREADY = "已报名"
 LEVEL_KEYS = ["仅Lv6", "仅限Lv", "等级不够", "暂未满足", "当前等级", "仅 Lv6", "Lv6-Lv8"]
 
+def _clean(s):
+    return str(s).replace(chr(0xfffc), "?")
+
 def log(s):
-    print(s, flush=True)
+    try:
+        print(_clean(s), flush=True)
+    except Exception:
+        pass
 
 def dump(d):
     return d.dump_hierarchy(compressed=True)
@@ -118,6 +130,13 @@ def parse_cards(xml):
                 cy = (int(m[1])+int(m[3]))//2
                 if cy > 600:
                     dists.append((cy, float(mm.group(1))))
+    applied_ys = []
+    for n in root.iter("node"):
+        tt = (n.attrib.get("text") or "").strip()
+        if tt == "已报名":
+            m = re.findall(r"\d+", n.attrib.get("bounds",""))
+            if len(m) == 4:
+                applied_ys.append((int(m[1])+int(m[3]))//2)
     cards = []
     for vcy, vv in vals:
         best = None
@@ -126,7 +145,7 @@ def parse_cards(xml):
                 if best is None or abs(dcy - vcy) < abs(best[0]-vcy):
                     best = (dcy, dd)
         if best:
-            cards.append({"y": vcy, "val": vv, "dist": best[1]})
+            cards.append({"y": vcy, "val": vv, "dist": best[1], "applied": any(abs(ay - vcy) < 180 for ay in applied_ys)})
     cards.sort(key=lambda c: c["y"])
     uniq = []
     for c in cards:
@@ -164,12 +183,7 @@ def do_one_detail(d, card):
         return "level_buzu"
     dd = detail_dist(xml)
     if dd is not None:
-        log("详情距离 %skm (列表%s)" % (dd, card["dist"]))
-        if dd >= DIST_MAX:
-            log("详情复核超距, back跳过")
-            d.press("back")
-            time.sleep(2)
-            return "far"
+        log("详情距离 %skm (列表%s, 以列表为准不跳过)" % (dd, card["dist"]))
     if T_ALREADY in xml and T_WANT not in xml:
         log("已报名过, back")
         d.press("back")
@@ -225,19 +239,7 @@ def do_one_detail(d, card):
         d.press("back"); time.sleep(2)
         return "level_buzu"
     log("报名结果片段: " + "|".join(texts(xml3)[:30]))
-    # 点 完成 (若有)
-    try:
-        root3 = ET.fromstring(xml3)
-        for n in root3.iter("node"):
-            if (n.attrib.get("text") or "") == T_DONE:
-                c = center_of(n.attrib.get("bounds",""))
-                if c:
-                    log("点完成 %s" % (c,))
-                    d.click(c[0], c[1])
-                    time.sleep(2)
-                    break
-    except Exception as e:
-        log("完成点击异常 %s" % e)
+    # 成功页直接back回列表(不用点完成)
     d.press("back")
     time.sleep(2)
     xml4 = dump(d)
@@ -270,7 +272,11 @@ def main():
             key = (c["val"], c["dist"])
             if key in seen:
                 continue
-            if c["val"] > VAL_MIN and c["dist"] < DIST_MAX:
+            if c.get("applied"):
+                log("跳过已报名不点 val=%s dist=%s y=%s" % (c["val"], c["dist"], c["y"]))
+                seen.add(key)
+                continue
+            if c["val"] > VAL_MIN and c["dist"] <= DIST_MAX:
                 target = c
                 break
         if not target:
@@ -283,7 +289,6 @@ def main():
             time.sleep(1.8)
             continue
         empty = 0
-        seen.add((target["val"], target["dist"]))
         log("开卡 %s x=640" % (target,))
         if target["y"] < 600:
             log("拒绝点卡: y<600 疑似快筛栏(连锁餐厅等), 跳过")
@@ -291,6 +296,12 @@ def main():
             d.swipe(640, 1800, 640, 1200, 0.6)
             time.sleep(1.5)
             continue
+        if target["y"] > 2100:
+            log("目标太靠底(y>2100, 接近底部导航), 先上滑再重扫" )
+            d.swipe(640, 2000, 640, 1300, 0.6)
+            time.sleep(1.8)
+            continue
+        seen.add((target["val"], target["dist"]))
         d.click(640, target["y"])
         time.sleep(3)
         r = do_one_detail(d, target)
