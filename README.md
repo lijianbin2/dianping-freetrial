@@ -1,190 +1,188 @@
-# 大众点评免费试 · 美食循环报名
+# 大众点评免费试：美食循环报名
 
-Hamibot 脚本：大众点评 App「免费试」频道，自动筛选**价值 100 元及以上（含 100）、距离 30km 以内（含 30.0km）**的美食商家并循环报名，直到出现等级不够的提示为止。
+这是一个基于 UIAutomator2 的本地自动化脚本。手机先手动进入大众点评的“免费试”列表，脚本从当前页面继续筛选美食商家，并尝试报名。
 
-## 当前推荐（2026-09-14）
+当前默认规则：
 
-> 2026-09-14：根目录 Hamibot 脚本已清空，先用 U2（work/u2_prototype.py）在免费试页验证通过后再转 Hamibot，手机上暂不传任何版本。
+- 商家价值 **大于或等于 100 元**
+- 列表距离 **小于或等于 30.0 km**
+- 距离支持 `km` 和 `m`，米会自动换算为千米
+- 列表中显示“已报名”的商家直接跳过
+- 详情页出现“等级不够”“仅 Lv6”等限制时立即停止
+- 遇到等级限制时保留当前页面，不再自动返回或继续点击
 
-- 手机上只传一个：hamibot_freetrial_V25.js（从免费试列表页开始，不碰首页）。
-- 点运行后必须先看到 V25 start，再看到 V25 auto ok:true；只看到前者=无障碍没开。
-- 先跑 hamibot_smoke.js：冒烟都不弹=Hamibot 环境问题，不是脚本问题。
-- V25相对V23改一处（扫卡改价值锚定，与U2同逻辑，见文末V25节）；V23相对V22改三处：删绝对坐标盲点（无全部分类直接停止）+ 详情复核（详情距离>30km跳过far / 已报名无我要报名跳过already）+ 主循环同步处理far/already; V23 vs V22: window 350->200 + y<600 fastfilter guard；U2先行验证（work/u2_prototype.py）再转Hamibot。
+## 环境要求
 
-## 环境
+- Windows 电脑
+- Python 3.10 或更高版本
+- Android 手机已开启“无线调试”或 USB 调试
+- 电脑可以连接手机的 UIAutomator2 服务
+- 手机停留在大众点评 App 内
 
-- 手机：REDMI Turbo 4 Pro，分辨率 1280x2772
-- 运行：Hamibot（Auto.js 系 API）；PC 端用 UIAutomator2 / adb 辅助定位
-- 包名：com.dianping.v1
+主要依赖只有：
 
-## 脚本说明
+```text
+uiautomator2>=3.0,<4
+```
 
-| 文件 | 用途 |
-|---|---|
-| dazhongdianping_home.js | 大众点评首页 starter（搜索 / 分类入口坐标，模板） |
-| dazhongdianping_mianfeishi.js | 首页 → 打开免费试频道 |
-| dazhongdianping_mianfeishi_meishi.js | 免费试 → 全部分类 → 切换到美食 |
-| dazhongdianping_meishi_filter100_20km.js | **主脚本**：筛选价值 >=100 且 <=30km 的商家，打开详情并报名 |
+## 安装
 
-## 核心规则（UIAutomator2 → Hamibot 翻译）
+在仓库根目录创建虚拟环境并安装依赖：
 
-- 文本控件本身 `clickable=false` 时，必须点父容器：`text("xxx").parent().click()`
-- 例外：「我要报名」按钮 `clickable=true`，可直接点
-- 坐标按 1280x2772 基准，换算到实际分辨率：`x * device.width / 1280`
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
 
-## 关键坐标（1280x2772）
+确认电脑能找到手机：
 
-| 位置 | 坐标 |
-|---|---|
-| 首页免费试卡片 | (956, 1102) |
-| 全部分类 | (481, 368) |
-| 美食（弹窗） | (640, 634) |
-| 我要报名 | (947, 2576) |
-| 确认报名（y 极低，注意滑到可见） | (640, 2558) |
-| 报名结果页「完成」 | (1183, 242) |
-| 弹窗「我知道了」 | (640, 1330) |
-| 左上返回 / keyevent 4 | (63, 139) |
+```powershell
+adb devices
+```
 
-## 报名流程
+如果使用无线调试，需要先完成 `adb pair` 和 `adb connect`。UIAutomator2 的设备地址通常类似：
 
-1. 免费试主页 → 全部分类 → 美食（顶栏变橙色即成功）
-2. 遍历列表项文本，正则提取`价值\s*(\d+)\s*元`与`(\d+\.?\d*)\s*km`，只进 `价值>=100 且 距离<=30` 的店
-3. 详情页点「我要报名」→ 确认页点「确认报名」（等 3 秒截图判断）
-4. 成功（含「报名成功 / 已报名」）→ 按返回键回列表（不再点完成） → 下一家
-5. 出现「暂未满足报名要求 / 仅 Lv6 / 等级不够」→ 截图存档，循环结束
+```text
+adb-XXXXXXXX._adb-tls-connect._tcp
+```
 
-## 实测战绩（2026-09-14）
+## 运行前准备
 
-- 本源食堂 173 元 / 18.8km ✅
-- 花崎居酒屋 110 元 / 19.3km ✅
-- 赫小野·长沙大排档 122 元 / 17.8km ✅
-- 傷心酒店·小酒馆 149 元 / 17.6km（橙 V 专享）✅
-- 厝内潮汕卤水火锅 326 元 / 20.2km →「仅 Lv6-Lv8 且橙 V 可报」→ 结束（见 docs/level_buzu.png）
-- 2026-09-14 00:03 U2实测（C:\Temp\u2_run.log）：起点=手动停免费试·美食列表，滑8页，价值>100且<=30km无一家合格（高价值全21km+，近的全<100元），到底正常结束，全程未碰快筛/搜索/宝箱/底部Tab。
+1. 打开大众点评 App。
+2. 进入“免费试”列表页。
+3. 确认当前是“美食”分类；如果不是，脚本会尝试打开“全部分类”并选择“美食”。
+4. 让手机保持亮屏、解锁并停留在该列表页。
+5. 在电脑运行脚本，不要同时手动操作手机。
+
+脚本不会负责登录大众点评，也不会自动处理验证码、锁屏密码或系统权限弹窗。
+
+## 日常运行
+
+使用默认设备地址：
+
+```powershell
+.\.venv\Scripts\python.exe work\u2_continue25.py
+```
+
+指定设备地址：
+
+```powershell
+.\.venv\Scripts\python.exe work\u2_continue25.py --serial "adb-41db6aed-hUrFEI._adb-tls-connect._tcp"
+```
+
+也可以临时设置环境变量：
+
+```powershell
+$env:U2_SERIAL = "adb-你的设备地址"
+.\.venv\Scripts\python.exe work\u2_continue25.py
+```
+
+运行过程中，脚本会持续把状态写到终端，例如：
+
+```text
+连上 <手机型号> ...
+V25-continue start
+筛选规则: 价值>=100, 距离<=30km
+本屏卡: [...]
+开卡 ...
+本单结果: ok
+```
+
+终端输出是唯一的运行日志。需要保存时可以直接重定向：
+
+```powershell
+.\.venv\Scripts\python.exe work\u2_continue25.py *> work\u2_run.log
+```
+
+## 参数
+
+```text
+--serial          UIAutomator2 设备地址
+--value-min       最低价值，默认 100
+--distance-max    最远距离（km），默认 30
+--max-minutes     最长运行分钟数，默认 100
+--max-empty       连续无新合格卡次数，默认 80
+```
+
+例如只跑价值 150 元及以上、距离 20 km 以内：
+
+```powershell
+.\.venv\Scripts\python.exe work\u2_continue25.py `
+  --value-min 150 `
+  --distance-max 20
+```
+
+## 工作流程
+
+1. 确认当前页面是免费试列表，并确保分类为美食。
+2. 解析当前屏幕的商家名称、价值和距离。
+3. 跳过已报名商家，选择第一个满足阈值的未处理商家。
+4. 打开详情页，检查等级限制、已报名状态和“我要报名”入口。
+5. 点击“我要报名”和“确认报名”。
+6. 报名结果页只返回一次；如果没有回到列表，脚本会停止，不会继续盲点。
+7. 回到列表后继续处理下一家，直到触底、达到超时、页面丢失或遇到等级限制。
+
+详情页显示的距离只用于记录，报名资格以列表页距离为准。脚本不会因为详情页距离略有差异而误跳过商家。
+
+## 停止条件
+
+脚本会在以下情况停止：
+
+- 看到“等级不够”“仅 Lv6”“暂未满足报名要求”等等级限制
+- 页面已经离开免费试列表，无法确认安全返回
+- 报名结果页返回后仍未回到列表
+- 找不到“全部分类”或“美食”入口
+- 连续 80 次没有新的合格商家，或列表出现“到底了”等文案
+- 达到默认 100 分钟运行上限
+
+停止时终端会打印 `漏网清单`，其中列出已经发现但没有得到明确结果的商家，方便人工复查。
 
 ## 目录结构
 
-- 根目录 *.js：可直接粘贴到 Hamibot 运行的脚本
-- docs/：3 张代表截图（报名成功 / 本源食堂 / 等级不够结束页）
-- work/hamibot-dev/：PC 辅助工具（u2 定位转 Hamibot、dump 解析）
-- outputs/、*.png、*.xml：本地运行截图与调试产物，不进仓库（见 .gitignore）
+```text
+.
+├── README.md
+├── requirements.txt
+├── docs/                       # 调试截图
+├── tests/
+│   └── test_u2_continue25.py
+└── work/
+    ├── u2_continue25.py         # 当前主力脚本
+    ├── debug_one.py            # 只读查看当前屏幕解析结果
+    └── ...                      # 历史实验脚本，不作为日常入口
+```
 
-## 注意
+`docs/` 中的截图用于记录历史实测状态：
 
-- 锁屏密码、手机号等敏感信息只口头传递，不落盘、不进脚本
-- 大众点评改版后坐标可能漂移，先用 `adb shell uiautomator dump` 重抓再改脚本
+- [报名成功](docs/baoming_chenggong.png)
+- [等级不足](docs/level_buzu.png)
+- [价值 100 元、距离约 20 km 的商家](docs/value100_dist20_shangjia_benyuan.png)
 
-仓库：https://github.com/lijianbin2/dianping-freetrial
+## 只读检查
 
-## Git 代理推送
-本仓库走本地代理推送 GitHub，代理 http://127.0.0.1:7890，已配 git http.proxy / https.proxy。
-fetch / push 前确认代理可用，命令：git fetch origin；git push -u origin main。
+不执行点击或滑动，只打印当前页面解析出的商家卡片：
 
-## 清理说明
-outputs/、work/hamibot-dev/dump/、截图 xml 均为本地调试产物，不进仓库（见 .gitignore）。
-2026-09-13 已用 git clean -fdX 清理约 150MB，docs/ 仅保留 3 张代表截图。
+```powershell
+.\.venv\Scripts\python.exe work\debug_one.py --serial "你的设备地址"
+```
 
-## 运行顺序
-1. dazhongdianping_home.js 首页模板；2. dazhongdianping_mianfeishi.js 打开免费试；3. dazhongdianping_mianfeishi_meishi.js 切美食；4. dazhongdianping_meishi_filter100_20km.js 主脚本筛选报名。全部直接粘贴到 Hamibot 运行。
+## 开发验证
 
+运行测试不需要连接手机：
 
-## V9（2026-09-13）：修复进免费试后无动作
-- 原因：免费试标题常是图片、无文本节点，	extContains(免费试) 扫不到就直接 throw，脚本在 V8 start 后直接退出，所以全程无 toast。
-- 修复：nsureMeishi() 不再抛错，扫不到也继续扫卡；每次扫卡都 	oast 扫卡 free xN；合并版去掉重复的 openMianFeiShi() 调用。
-- 必查：手机设置 → 无障碍 → 开 Hamibot；Hamibot App 内自动化/悬浮窗权限全开，否则 TextView 数量为 0，什么字都扫不到。
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
 
+编译检查：
 
-## V10: verify meishi tab before paging
-- Fix: old ensureMeishi returned early on any text mei-shi, paging in wrong category.
-- New: isMeishiTab checks y 1300-1750 (category bar); click all mei-shi candidates, verify, return true/false; exit if false.
-- Expect toast: V10 start -> switch meishi try -> to meishi ok ->扫卡 free xN.
+```powershell
+.\.venv\Scripts\python.exe -m compileall -q work tests
+```
 
+## 注意事项
 
-## V10.4（2026-09-13）：修吸顶后面食校验 + 价值空格数字兜底
-- 根因：切美食成功后顶栏吸顶到 y~368，老 isMeishiTab 只认 y 1300-1750，永远 false，导致 ensureMeishi 空转 5 次 switch meishi try 后退出，看起来就是 进去免费试后不动。
-- 修复1：isMeishiTab 改为 有美食且无全部分类即算成功（tab check mei=true quan=false），去掉 Y 区间判断。
-- 修复2：美食候选按 centerY 排序，弹窗项优先点；点全部分类改用 bounds 中心 click 并打日志。
-- 修复3：价值解析加兜底，clean 匹配不到时用 joined 宽松取 价值...元 再提数字，兼容 价值 1 5 9 元这种被拆成三段 TextView 的情况。
-- 预期 toast：V10.4 start -> switch meishi try -> to meishi ok -> 扫卡 free xN -> hit...yuan...km。
-
-## V10.5（2026-09-13）：日志落盘到手机 txt
-- 需求：用户要求以后看日志直接看手机 txt，不用截图 Hamibot 日志页。
-- 实现：LOG_PATH=/sdcard/hamibot_free_log.txt，启动时 files.write 覆盖写头，劫持 log() 双写（控制台+append 到 txt，带时间戳）。
-- 验证：adb shell cat /sdcard/hamibot_free_log.txt，应看到 V10.5 start -> switch meishi try -> to meishi ok -> 扫卡 free xN。
-- 注意：txt 不存在=新版还没跑过，先在 Hamibot 粘贴合并版重跑一次再拉取。
-
-
-## V10.6（2026-09-13）：多路径日志兜底
-- V10.5 只写 /sdcard，实测没文件（没跑新版或没存储权限），改试 3 个路径：/sdcard/hamibot_free_log.txt -> ./hamibot_free_log.txt -> /sdcard/Download/hamibot_free_log.txt，哪个能写用哪个。
-- toast 直接报 V10.6 start log:实际路径，跑完凭 toast 就知道写到哪了。
-
-
-## V10.7（2026-09-13）：强启动点评
-- 日志实锤：app.launch 后 pkg 仍是 com.miui.home，根本没进点评，后面扫卡全是桌面 50 个 TextView，当然找不到免费试。
-- 改 3 次 launch+launchApp 循环，每次查包名，3 次还进不去直接报 后台弹出/自启动权限。dumpKeys 加 pkg/act + 无词时打前 15 文本。
-
-
-## V10.8（2026-09-13）：自动启动被拦改手动等
-- 日志：3 次 launch 全是 com.miui.personalassistant（负一屏），top15 全是 天气/计算器/支付宝…根本没进点评，MIUI 后台启动被拦。
-- 改：自动打不开就 toast 请手动打开点评首页，等 30s 轮询包名，看到 com.dianping.v1 才继续扫免费试。
-
-
-## V10.9 misclick fix
-
-
-## V11（2026-09-13）：从免费试页手动开始
-- 用户手动进入免费试列表页后再运行，不再自动打开点评/找首页右卡入口。
-- 起手等免费试列表（免费抽/全部分类/智能排序，30s），再 ensureMeishi 严校验（有美食且无全部分类），再扫卡。
-- 文件：hamibot_免费试页开始_V11.js（由合并版 V10.9 复制，仅改入口尾部）。
-- 运行：手动停在免费试列表页 → 粘贴 V11 运行 → 切美食 → 价值>100元且<=30km → 我要报名→确认报名→完成→back→下一家，直到等级不够结束。
-
-
-
-## V12–V14
-- V12: ensureMeishi 用 inFreeList 锚定，避免误进美食频道回首页。
-- V13: 删分类步骤的 back，留报名详情回列表的一次 back。
-- V14 极简版：删首页找免费试入口死代码，删回顶下滑，分类步骤零 back；只点弹窗里的美食（过滤掉顶部频道入口，跳出列表直接停不 back）。报名详情回列表的 back 保留。
-- 文件：hamibot_免费试页开始_V14.js，7607 字节，node --check 通过。
-
-## V15（2026-09-13）：修美食点不到
-- V13 日志实锤：try0 点全部分类后，美食 y=634 被 H*0.35=970 的顶部过滤杀掉（popup cands=0）；try1 点到弹窗标题（y=368）把弹窗关了，cands=0 失败退出。
-- 改：删掉美食 Y 高度过滤（列表页本来就没有美食文字，弹窗里出现的任何美食都在弹窗里）；点全部分类选 Y 最小的（顶部 tab 栏），不点弹窗标题。
-- 文件：hamibot_免费试页开始_V15.js（由 V14 复制，仅换 ensureMeishi + V15 字样），node --check 通过。
-
-## V16
-- V15 bug: doBaoMing blind back left free list (no_entry/no_confirm/done). Fix: guardBack skips back when already in list, max 2 backs with verify, lost stops loop. Meishi list sorted DESC so popup item tapped before top channel entry.
-- File: hamibot_免费试页开始_V16.js, node --check pass.
-
-## V17
-- 修V16同卡原地打转:点卡后校验真离开列表,没打开就试下一张;no_entry/no_confirm连败上滑跳过该卡,3连败多滑一次。
-
-
-## V18
-- 修启动即死:不再覆盖系统log函数,改用自有L()写日志;启动加toast,无动作也能定位卡在哪。
-
-## V23（2026-09-13）：U2先行验证后转换，详情复核补齐
-- 流程：PC用uiautomator2调通（起点=手动停在免费试列表），再转Hamibot。U2原型work/u2_prototype.py + 全量扫描work/u2_scan.py：整列表7卡全不达标（价值>100且距离<=30km），只滑不动，不碰快筛（连锁餐厅等selected=false已确认）。
-- 改（相对V21）：删绝对坐标盲点（481,1529 fallback改停止）；详情复核补两项——详情距离>30km回列表跳过（far，修列表19.8/详情20.4偏差）、有已报名无我要报名回列表跳过（already）；主循环failStreak分支同步处理far/already; V23 vs V22: window 350->200 + y<600 fastfilter guard。
-- 文件：hamibot_freetrial_V23.js（ASCII名，LF无BOM，node --check通过）。起点仍是手动停在免费试列表页，日志写手机txt。
-- 待验证：等列表刷出价值>100且距离<=30km的卡后实测开卡报名一单。
-
-## V23.1 U2 window350 + 防误点连锁餐厅 guard
-- 只读dump验证：当前屏5价配6距，价距Y差全部恰好136，证明120窗口必配丢、350正确；5张全价值<100，无合格卡。
-- 误点连锁餐厅根因：代码从无点快筛逻辑（四快筛selected=false已确认），是120窗口配错致开卡坐标飘。
-- 修：U2与Hamibot V23价距配对窗口统一120→350；开卡前加guard：target y<600拒绝点击、上滑跳过（快筛栏y≈486，防误点连锁餐厅/附近3km等）。
-- U2原型work/u2_prototype.py + 全量扫描work/u2_scan.py已同步；Hamibot V23.js逻辑与U2对齐。
-
-## V25（2026-09-14）：价值锚定，与U2同逻辑
-- 改（相对V23）：扫卡改价值锚定——只收y>=650/700纯数字价值与xkm距离，就近配对（窗口200，U2已验证），开卡点x=640中心；禁点快筛芯片行（y约441-532连锁餐厅等）/搜索栏/宝箱/底部橙V Tab；起点禁back（back只允许详情→列表）；阈值VAL_MIN=100/DIST_MAX=30；遇等级不够/仅Lv6结束；日志写手机txt。
-- 文件：hamibot_freetrial_V25.js（176行，10633字节，node --check通过）。生成器work/make_v25.py（源V23），U2原型work/u2_prototype.py + 全量扫描work/u2_scan.py（窗口200已同步）。
-- 验证：U2八页无合格实测通过（见实测战绩）；Hamibot待实测（先跑hamibot_smoke.js，再看V25 start + V25 auto ok:true）。
-
-## U2 continue25（2026-09-23）：当前主力（PC 直跑）
-
-- 文件：work/u2_continue25.py（py_compile 通过）。起点=手动停在免费试美食列表页，continue 模式保持位置、从不回顶部。
-- 阈值：价值>=100（含 100）且距离<=30km（含 30.0）；列表距离认 km/m（米制 m 除以 1000 折算）；详情距离只记录不拦单，以列表为准。
-- 报名链：解析卡片、开卡、详情复核（等级门/已报名/无入口）、我要报名、确认报名、单 back 回列表。确认页/结果页/成功页/无确认全部最多按一次 back，打 STOP_HERE_NO_HOME 就地停，绝不退回大众首页（重进商户会刷新）。
-- 等级策略（方案 1）：见仅 Lv6/等级不够就全停，不跳过。改方案 2 需明确说。
-- 防误点：y<600 疑似快筛栏下滑带回重扫（3 次带不回才翻过）；y>2100 太靠底先上滑重扫；已报名用包含匹配提前跳过不点。
-- 审计：开卡记 SPOTTED，ok/already/no_entry/no_confirm 记 DONE，level_buzu/lost/异常留在漏网清单；翻页 empty 80 加触底文案双条件结束，empty>10 大步快滑，100 分钟超时保护。
-- 实测（C 盘 Temp 下 u2_run_0923_7.log）：顶部起点，金盈轩 204/小池塘 161/115 均为 already，粤陈记 100 ok，三只自由鸡 450 遇 Lv6 全停，全程停在免费试列表、未回首页。
+- 大众点评页面改版后，控件文字和层级结构可能变化，脚本应先用 `debug_one.py` 和单元测试验证。
+- 不要把锁屏密码、手机号或其他敏感信息写进脚本、日志或提交记录。
+- 运行时不要切换分类、搜索、返回桌面或操作手机；脚本依赖当前页面状态。
+- 历史脚本保留在 `work/` 中用于复现实验，不建议直接运行。

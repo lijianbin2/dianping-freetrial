@@ -8,3 +8,7 @@ work/hamibot-dev/dump/
 *.log
 # U2 continue25 local backups, not tracked
 work/*.bak_*
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.venv/
